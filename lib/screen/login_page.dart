@@ -240,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: BoxDecoration(
                         image: DecorationImage(
                           image: AssetImage('assets/images/legospike.png'),
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
