@@ -146,6 +146,13 @@ class _LoginPageState extends State<LoginPage> {
                             controller: usernameController,
                             placeholder: 'Enter your username',
                             padding: const EdgeInsets.all(12),
+                            suffix: Padding(
+                              padding: EdgeInsets.only(right: 10),
+                              child: Icon(
+                                CupertinoIcons.person,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -177,6 +184,13 @@ class _LoginPageState extends State<LoginPage> {
                             placeholder: 'Enter your password',
                             obscureText: true,
                             padding: const EdgeInsets.all(12),
+                            suffix: Padding(
+                              padding: EdgeInsets.only(right: 10),
+                              child: Icon(
+                                CupertinoIcons.lock,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
                         ),
                         const Spacer(),
