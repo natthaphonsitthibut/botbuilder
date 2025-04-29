@@ -1,3 +1,5 @@
+import 'package:botbuilder/layouts/main_layout.dart';
+import 'package:botbuilder/pages/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart'; // ใช้สำหรับบางอย่างเช่น SnackBar (optional)
 
@@ -26,7 +28,14 @@ class _LoginPageState extends State<LoginPage> {
               actions: [
                 CupertinoDialogAction(
                   child: const Text('OK'),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed:
+                      () => Navigator.pushReplacement(
+                        context,
+                        CupertinoPageRoute(
+                          builder:
+                              (context) => const MainLayout(child: HomePage()),
+                        ),
+                      ),
                 ),
               ],
             ),
