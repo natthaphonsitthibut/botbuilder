@@ -44,10 +44,7 @@ class _CoursePageState extends State<CoursePage> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text("Course"),
-        previousPageTitle: "Home", // ปรับชื่อได้
-      ),
+      navigationBar: CupertinoNavigationBar(middle: Text("Course")),
       child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

@@ -38,6 +38,7 @@ dependencies:
   google_sign_in: ^6.1.5
   googleapis: ^13.1.0
   http: ^0.13.6
+  url_launcher: ^6.2.1
 #   flutter_launcher_icons: "^0.14.3"
 
 # flutter_icons:
