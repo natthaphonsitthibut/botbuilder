@@ -1,5 +1,8 @@
 import 'package:botbuilder/pages/checkin_page.dart';
 import 'package:botbuilder/pages/course_page.dart';
+import 'package:botbuilder/pages/model_page.dart';
+import 'package:botbuilder/pages/student_page.dart';
+import 'package:botbuilder/pages/user_page.dart';
 import 'package:botbuilder/widgets/menu_icon_button.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -82,17 +85,32 @@ class HomePage extends StatelessWidget {
                 MenuIconButton(
                   icon: CupertinoIcons.cube_box,
                   label: 'Model',
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(builder: (context) => ModelPage()),
+                    );
+                  },
                 ),
                 MenuIconButton(
                   icon: CupertinoIcons.person_2,
                   label: 'Student',
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(builder: (context) => StudentPage()),
+                    );
+                  },
                 ),
                 MenuIconButton(
                   icon: CupertinoIcons.doc_text,
                   label: 'Report',
-                  onPressed: () {},
+                  onPressed: () {
+                    // Navigator.push(
+                    //   context,
+                    //   CupertinoPageRoute(builder: (context) => ReportPage()),
+                    // );
+                  },
                 ),
                 MenuIconButton(
                   icon: CupertinoIcons.location,
@@ -100,16 +118,21 @@ class HomePage extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      CupertinoPageRoute(
-                        builder: (context) => const CheckInPage(),
-                      ),
+                      CupertinoPageRoute(builder: (context) => CheckInPage()),
                     );
                   },
                 ),
                 MenuIconButton(
                   icon: CupertinoIcons.person,
                   label: 'User',
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => const UserPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
