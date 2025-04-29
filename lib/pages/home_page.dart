@@ -1,3 +1,4 @@
+import 'package:botbuilder/pages/course_page.dart';
 import 'package:botbuilder/widgets/menu_icon_button.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -68,7 +69,14 @@ class HomePage extends StatelessWidget {
                 MenuIconButton(
                   icon: CupertinoIcons.book,
                   label: 'Course',
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (context) => const CoursePage(),
+                      ),
+                    );
+                  },
                 ),
                 MenuIconButton(
                   icon: CupertinoIcons.cube_box,

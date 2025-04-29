@@ -32,7 +32,8 @@ class _LoginPageState extends State<LoginPage> {
                       () => Navigator.pushReplacement(
                         context,
                         CupertinoPageRoute(
-                          builder: (context) => const MainLayout(),
+                          builder:
+                              (context) => const MainLayout(page: HomePage()),
                         ),
                       ),
                 ),

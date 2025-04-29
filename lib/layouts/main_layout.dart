@@ -1,18 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../pages/home_page.dart';
 
-class MainLayout extends StatefulWidget {
-  const MainLayout({super.key});
+class MainLayout extends StatelessWidget {
+  final Widget page; // <<< รับ Widget เดี่ยวๆ เลย
 
-  @override
-  State<MainLayout> createState() => _MainLayoutState();
-}
-
-class _MainLayoutState extends State<MainLayout> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = const [HomePage()];
+  const MainLayout({super.key, required this.page});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +29,7 @@ class _MainLayoutState extends State<MainLayout> {
                 ],
               ),
               child: Padding(
-                padding: EdgeInsets.only(top: 35),
+                padding: const EdgeInsets.only(top: 35),
                 child: Row(
                   children: [
                     const CircleAvatar(
@@ -47,10 +39,10 @@ class _MainLayoutState extends State<MainLayout> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Column(
+                    const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           "Natthaphon",
                           style: TextStyle(
@@ -73,46 +65,8 @@ class _MainLayoutState extends State<MainLayout> {
               ),
             ),
 
-            // --- เนื้อหาของแต่ละหน้า ---
-            Expanded(child: _pages[_currentIndex]),
-
-            // --- Bottom Navigation ---
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 8,
-              ), // เพิ่ม padding ด้านบนให้ทั้ง TabBar
-              child: CupertinoTabBar(
-                backgroundColor: CupertinoColors.systemGrey6,
-                activeColor: CupertinoColors.activeBlue,
-                inactiveColor: CupertinoColors.inactiveGray,
-                currentIndex: _currentIndex,
-                onTap: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Padding(
-                      padding: EdgeInsets.only(top: 20),
-                      child: Icon(CupertinoIcons.home),
-                    ),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Padding(
-                      padding: EdgeInsets.only(top: 20),
-                      child: Icon(CupertinoIcons.calendar),
-                    ),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Padding(
-                      padding: EdgeInsets.only(top: 20),
-                      child: Icon(CupertinoIcons.person),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // --- เนื้อหาที่รับเข้ามา ---
+            Expanded(child: page),
           ],
         ),
       ),
