@@ -1,8 +1,3 @@
-import 'package:botbuilder/pages/checkin_page.dart';
-import 'package:botbuilder/pages/course_page.dart';
-import 'package:botbuilder/pages/model_page.dart';
-import 'package:botbuilder/pages/student_page.dart';
-import 'package:botbuilder/pages/user_page.dart';
 import 'package:botbuilder/widgets/menu_icon_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';

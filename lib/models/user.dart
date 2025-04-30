@@ -1,17 +1,19 @@
 class User {
   final int id;
-  final String name;
+  final String firstname;
+  final String lastname;
   final String username;
   final String email;
   final String? password;
   final String gender;
-  final String imageUrl;
+  final String? imageUrl;
   final String birthdate;
   final int roleId;
 
   User({
     required this.id,
-    required this.name,
+    required this.firstname,
+    required this.lastname,
     required this.username,
     required this.email,
     required this.password,
@@ -23,19 +25,21 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) => User(
     id: json['id'],
-    name: json['name'],
+    firstname: json['firstname'],
+    lastname: json['lastname'],
     username: json['username'],
     email: json['email'],
     password: json['password'],
     gender: json['gender'],
-    imageUrl: json['imageUrl'],
+    imageUrl: json['imageUrl'] as String?,
     birthdate: json['birthdate'],
     roleId: json['role']['id'] as int, // สมมติ nested
   );
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'name': name,
+    'firstname': firstname,
+    'lastname': lastname,
     'username': username,
     'email': email,
     'password': password,

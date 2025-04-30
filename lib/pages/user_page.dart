@@ -36,7 +36,9 @@ class _UserPageState extends State<UserPage> {
   Widget build(BuildContext context) {
     final filteredUsers =
         users.where((u) {
-          return u.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          return u.firstname.toLowerCase().contains(
+                searchQuery.toLowerCase(),
+              ) ||
               u.email.toLowerCase().contains(searchQuery.toLowerCase());
         }).toList();
 
@@ -100,18 +102,19 @@ class _UserPageState extends State<UserPage> {
                                     children: [
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          dotenv.env['API_BASE_URL']! +
-                                              user.imageUrl,
-                                          width: 60,
-                                          height: 60,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  const Icon(
-                                                    CupertinoIcons.person,
-                                                  ),
-                                        ),
+                                        child:
+                                            user.imageUrl != null
+                                                ? Image.network(
+                                                  dotenv.env['API_BASE_URL']! +
+                                                      user.imageUrl!,
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                )
+                                                : const Icon(
+                                                  CupertinoIcons.person,
+                                                  size: 60,
+                                                ),
                                       ),
                                       const SizedBox(width: 12),
                                       Column(
@@ -121,7 +124,7 @@ class _UserPageState extends State<UserPage> {
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            user.name,
+                                            user.firstname,
                                             style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,

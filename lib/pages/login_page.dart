@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,147 +14,152 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool loading = false;
 
-  void login() {
-    final username = usernameController.text;
-    final password = passwordController.text;
+  void login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
-    if (username == 'admin' && password == '1234') {
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (context) => CupertinoAlertDialog(
-              title: const Text('Login Success'),
-              content: const Text('Welcome back!'),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text('OK'),
-                  onPressed: () => Get.offNamed('/home'),
-                ),
-              ],
-            ),
-      );
-    } else {
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (context) => CupertinoAlertDialog(
-              title: const Text('Login Failed'),
-              content: const Text('Invalid username or password.'),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text('Try Again'),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-      );
+    if (email.isEmpty || password.isEmpty) {
+      showError('Please enter email and password');
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      final url = Uri.parse('${dotenv.env['API_BASE_URL']}/auth/login');
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'emailOrUsername': email, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 201 && data['access_token'] != null) {
+        if (Get.isDialogOpen == true && mounted) {
+          Get.back();
+        }
+        Get.offNamed('/home');
+      } else {
+        final message = data['message'] ?? 'Login failed';
+        showError(message);
+      }
+    } catch (e) {
+      showError('An error occurred: $e');
+    } finally {
+      setState(() => loading = false);
+    }
+  }
+
+  void showError(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (_) => CupertinoAlertDialog(
+            title: const Text('Login Failed'),
+            content: Text(message),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('Try Again'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void loginWithGoogle() async {
+    setState(() => loading = true);
+    try {
+      final googleUrl = Uri.parse('${dotenv.env['API_BASE_URL']}/auth/google');
+      if (await canLaunchUrl(googleUrl)) {
+        await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
+      } else {
+        throw Exception('Cannot open Google Sign-In page');
+      }
+    } catch (e) {
+      showError('Google Sign-In failed: $e');
+    } finally {
+      setState(() => loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      // navigationBar: const CupertinoNavigationBar(middle: Text('Login')),
-      child: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 50),
-                child: Container(
-                  height: 200,
-                  width: 200,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/logos/logo.png'),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
+      child: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background.png'),
+                fit: BoxFit.cover,
               ),
-              Center(
-                child: Container(
-                  width: 350,
-                  height: 450,
-                  clipBehavior: Clip.hardEdge, // <<< ตัดให้ขอบมนจริง
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF9A9A), // พื้นหลัง Container
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha((0.2 * 255).toInt()),
-                        spreadRadius: 2, // ขนาดกระจาย
-                        blurRadius: 4, // ความเบลอ
-                        offset: Offset(
-                          2,
-                          2,
-                        ), // ทิศทาง x, y (0 คือกึ่งกลาง, 4 คือดันลงล่าง)
-                      ),
-                    ], // ขอบมน 16 px
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(
-                      16.0,
-                    ), // <<< Padding ข้างในทั้งหมด
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 50),
+                  Image.asset('assets/logos/logo.png', height: 200, width: 200),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: 350,
+                    height: 450,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF9A9A),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha((0.3 * 255).toInt()),
+                          spreadRadius: 2,
+                          blurRadius: 4,
+                          offset: const Offset(2, 2),
+                        ),
+                      ],
+                    ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
-
                       children: [
-                        Padding(
-                          padding: EdgeInsets.only(top: 16),
-                          child: Center(
-                            child: Text(
-                              "LOGIN",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 25,
-                              ),
+                        const Center(
+                          child: Text(
+                            'LOGIN',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 60),
+                        const SizedBox(height: 40),
                         const Text(
-                          'Username',
+                          'Email or Username',
                           style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
+                            color: CupertinoColors.white,
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(
-                                  (0.2 * 255).toInt(),
-                                ),
-                                spreadRadius: 2, // ขนาดกระจาย
-                                blurRadius: 4, // ความเบลอ
-                                offset: Offset(
-                                  2,
-                                  5,
-                                ), // ทิศทาง x, y (0 คือกึ่งกลาง, 4 คือดันลงล่าง)
-                              ),
-                            ],
                           ),
-                          height: 55,
                           child: CupertinoTextField(
-                            controller: usernameController,
-                            placeholder: 'Enter your username',
-                            padding: const EdgeInsets.all(12),
-                            suffix: Padding(
-                              padding: EdgeInsets.only(right: 10),
+                            controller: emailController,
+                            placeholder: 'Enter your email or username',
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 14,
+                            ),
+                            prefix: const Padding(
+                              padding: EdgeInsets.only(left: 8),
                               child: Icon(
-                                CupertinoIcons.person,
+                                CupertinoIcons.mail,
                                 color: Colors.grey,
                               ),
                             ),
@@ -164,29 +173,19 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 8),
                         Container(
                           decoration: BoxDecoration(
+                            color: CupertinoColors.white,
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(
-                                  (0.2 * 255).toInt(),
-                                ),
-                                spreadRadius: 2, // ขนาดกระจาย
-                                blurRadius: 4, // ความเบลอ
-                                offset: Offset(
-                                  2,
-                                  5,
-                                ), // ทิศทาง x, y (0 คือกึ่งกลาง, 4 คือดันลงล่าง)
-                              ),
-                            ],
                           ),
-                          height: 55,
                           child: CupertinoTextField(
                             controller: passwordController,
                             placeholder: 'Enter your password',
                             obscureText: true,
-                            padding: const EdgeInsets.all(12),
-                            suffix: Padding(
-                              padding: EdgeInsets.only(right: 10),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 14,
+                            ),
+                            prefix: const Padding(
+                              padding: EdgeInsets.only(left: 8),
                               child: Icon(
                                 CupertinoIcons.lock,
                                 color: Colors.grey,
@@ -196,61 +195,79 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const Spacer(),
                         Center(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withAlpha(
-                                    (0.2 * 255).toInt(),
-                                  ),
-                                  spreadRadius: 2, // ขนาดกระจาย
-                                  blurRadius: 4, // ความเบลอ
-                                  offset: Offset(
-                                    2,
-                                    5,
-                                  ), // ทิศทาง x, y (0 คือกึ่งกลาง, 4 คือดันลงล่าง)
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 120,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: const Color.fromARGB(255, 255, 0, 0),
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withAlpha(
+                                        (0.3 * 255).toInt(),
+                                      ),
+                                      spreadRadius: 2,
+                                      blurRadius: 4,
+                                      offset: const Offset(2, 5),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            width: 120,
-                            height: 50,
-                            child: CupertinoButton(
-                              onPressed: login,
-                              color: const Color.fromARGB(255, 255, 0, 0),
-                              child: const Text(
-                                'LOGIN',
-                                style: TextStyle(color: Colors.white),
+                                child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: login,
+                                  child: const Text(
+                                    'LOGIN',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 10),
+                              CupertinoButton(
+                                color: Colors.white,
+                                onPressed: loginWithGoogle,
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.globe,
+                                      color: Colors.black,
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'Sign in with Google',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Container(
-                      width: 180,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage('assets/images/legospike.png'),
-                          fit: BoxFit.contain,
-                        ),
-                      ),
+                  const Spacer(),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Image.asset(
+                      'assets/images/legospike.png',
+                      height: 150,
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          if (loading)
+            Container(
+              color: Colors.black.withAlpha((0.3 * 255).toInt()),
+              child: const Center(
+                child: CupertinoActivityIndicator(radius: 20),
+              ),
+            ),
+        ],
       ),
     );
   }

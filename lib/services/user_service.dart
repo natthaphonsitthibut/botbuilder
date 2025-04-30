@@ -19,7 +19,8 @@ class UserService {
   Future<User> createUser(User user, File? file) async {
     final formData = FormData.fromMap({
       'username': user.username,
-      'name': user.name,
+      'firstname': user.firstname,
+      'lastname': user.lastname,
       'email': user.email,
       'password': user.password,
       'gender': user.gender,
@@ -39,7 +40,8 @@ class UserService {
   Future<User> updateUser(int id, User user, File? file) async {
     final formData = FormData.fromMap({
       'username': user.username,
-      'name': user.name,
+      'firstname': user.firstname,
+      'lastname': user.lastname,
       'email': user.email,
       'password': user.password,
       'gender': user.gender,
