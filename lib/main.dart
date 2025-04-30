@@ -1,11 +1,24 @@
-import 'package:botbuilder/pages/login_page.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'routes.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(); //load env
-  runApp(
-    const CupertinoApp(home: LoginPage(), debugShowCheckedModeBanner: false),
-  );
+  await dotenv.load();
+
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GetCupertinoApp(
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/login',
+      getPages: appRoutes,
+    );
+  }
 }
