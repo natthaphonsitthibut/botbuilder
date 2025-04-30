@@ -1,3 +1,4 @@
+import 'package:botbuilder/widgets/add_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -59,20 +60,7 @@ class _CoursePageState extends State<CoursePage> {
                     "Course",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  CupertinoButton(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    color: CupertinoColors.activeGreen,
-                    child: const Text(
-                      "ADD",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () {
-                      // TODO: Add logic
-                    },
-                  ),
+                  AddButton(onPressed: () {}),
                 ],
               ),
               const SizedBox(height: 12),

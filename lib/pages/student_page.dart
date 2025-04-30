@@ -1,4 +1,6 @@
 import 'package:flutter/cupertino.dart';
+import 'package:botbuilder/widgets/add_button.dart';
+import 'package:botbuilder/widgets/search_bar.dart';
 
 class StudentPage extends StatefulWidget {
   const StudentPage({super.key});
@@ -33,23 +35,23 @@ class _StudentPageState extends State<StudentPage> {
                     "Student",
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  CupertinoButton(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    color: CupertinoColors.activeGreen,
-                    child: const Text("ADD"),
-                    onPressed: () {},
+                  AddButton(
+                    onPressed: () {
+                      // TODO: Add Student
+                    },
                   ),
                 ],
               ),
               const SizedBox(height: 12),
 
               // Search Bar
-              CupertinoSearchTextField(
-                controller: searchController,
+              SearchBar(
                 placeholder: 'Search',
+                onChanged: (value) {
+                  setState(() {
+                    searchController.text = value;
+                  });
+                },
               ),
               const SizedBox(height: 16),
 

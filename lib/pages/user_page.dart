@@ -1,5 +1,9 @@
+import 'package:botbuilder/widgets/add_button.dart';
+import 'package:botbuilder/widgets/search_bar.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:botbuilder/models/user.dart';
+import 'package:botbuilder/services/user_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -9,133 +13,138 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
-  final List<Map<String, String>> users = [
-    {
-      'name': 'Natthaphon Sitthibut',
-      'email': 'natthaphonstb@gmail.com',
-      'image': 'assets/images/legospike.png',
-    },
-    {
-      'name': 'Siriwan J.',
-      'email': 'siriwan@email.com',
-      'image': 'assets/images/legospike.png',
-    },
-    {
-      'name': 'Anan S.',
-      'email': 'anan@email.com',
-      'image': 'assets/images/legospike.png',
-    },
-  ];
-
+  final UserService _userService = UserService();
+  List<User> users = [];
   String searchQuery = '';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUsers();
+  }
+
+  Future<void> loadUsers() async {
+    final fetched = await _userService.getUsers();
+    setState(() {
+      users = fetched;
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final filteredUsers =
-        users
-            .where(
-              (u) =>
-                  u['name']!.toLowerCase().contains(
-                    searchQuery.toLowerCase(),
-                  ) ||
-                  u['email']!.toLowerCase().contains(searchQuery.toLowerCase()),
-            )
-            .toList();
+        users.where((u) {
+          return u.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              u.email.toLowerCase().contains(searchQuery.toLowerCase());
+        }).toList();
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(middle: Text('User')),
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // ปุ่ม Add และช่องค้นหา
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: CupertinoSearchTextField(
-                      placeholder: 'Search',
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  CupertinoButton(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    color: CupertinoColors.activeGreen,
-                    onPressed: () {
-                      // TODO: Add action
-                    },
-                    child: const Text('ADD'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // รายการผู้ใช้งาน
-              Expanded(
-                child: GridView.builder(
-                  itemCount: filteredUsers.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 1,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 4,
-                  ),
-                  itemBuilder: (context, index) {
-                    final user = filteredUsers[index];
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.systemGrey5,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
+          child:
+              isLoading
+                  ? const Center(child: CupertinoActivityIndicator())
+                  : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header: Title + Add Button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              user['image']!,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
+                          const Text(
+                            "User",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                user['name']!,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Text(
-                                user['email']!,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: CupertinoColors.inactiveGray,
-                                ),
-                              ),
-                            ],
+                          AddButton(
+                            onPressed: () {
+                              // TODO: ADD action
+                            },
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+                      const SizedBox(height: 12),
+
+                      // Search Bar (แยกมาแล้ว)
+                      SearchBar(
+                        placeholder: 'Search...',
+                        onChanged: (value) {
+                          setState(() {
+                            searchQuery = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Grid View
+                      Expanded(
+                        child: GridView.count(
+                          crossAxisCount: 1,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 4,
+                          children:
+                              filteredUsers.map((user) {
+                                return Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.systemGrey5,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          dotenv.env['API_BASE_URL']! +
+                                              user.imageUrl,
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(
+                                                    CupertinoIcons.person,
+                                                  ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            user.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            user.email,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  CupertinoColors.inactiveGray,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
         ),
       ),
     );

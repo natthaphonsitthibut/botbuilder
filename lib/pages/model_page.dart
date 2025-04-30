@@ -1,8 +1,16 @@
-// model_page.dart
 import 'package:flutter/cupertino.dart';
+import 'package:botbuilder/widgets/add_button.dart';
+import 'package:botbuilder/widgets/search_bar.dart';
 
-class ModelPage extends StatelessWidget {
+class ModelPage extends StatefulWidget {
   const ModelPage({super.key});
+
+  @override
+  State<ModelPage> createState() => _ModelPageState();
+}
+
+class _ModelPageState extends State<ModelPage> {
+  String searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +22,7 @@ class ModelPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -21,23 +30,28 @@ class ModelPage extends StatelessWidget {
                     'Model',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  CupertinoButton(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    color: CupertinoColors.activeGreen,
-                    child: const Text("ADD"),
-                    onPressed: () {},
+                  AddButton(
+                    onPressed: () {
+                      // TODO: handle add model
+                    },
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              const CupertinoSearchTextField(),
+
+              // Search Bar
+              SearchBar(
+                placeholder: 'Search',
+                onChanged: (value) {
+                  setState(() => searchQuery = value);
+                },
+              ),
               const SizedBox(height: 16),
+
+              // Grid List
               Expanded(
                 child: GridView.builder(
-                  itemCount: 12,
+                  itemCount: 12, // TODO: replace with filtered data
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     crossAxisSpacing: 10,
