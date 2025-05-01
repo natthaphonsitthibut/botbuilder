@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -17,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool loading = false;
+  final storage = FlutterSecureStorage();
 
   void login() async {
     final email = emailController.text.trim();
@@ -42,6 +45,7 @@ class _LoginPageState extends State<LoginPage> {
       final data = json.decode(response.body);
 
       if (response.statusCode == 201 && data['access_token'] != null) {
+        await storage.write(key: 'access_token', value: data['access_token']);
         if (Get.isDialogOpen == true && mounted) {
           Get.back();
         }
@@ -77,11 +81,28 @@ class _LoginPageState extends State<LoginPage> {
   void loginWithGoogle() async {
     setState(() => loading = true);
     try {
-      final googleUrl = Uri.parse('${dotenv.env['API_BASE_URL']}/auth/google');
-      if (await canLaunchUrl(googleUrl)) {
-        await launchUrl(googleUrl, mode: LaunchMode.externalApplication);
+      final callbackScheme = 'botbuilder';
+
+      final result = await FlutterWebAuth2.authenticate(
+        url: '${dotenv.env['API_BASE_URL']}/auth/google',
+        callbackUrlScheme: callbackScheme,
+      );
+      print('✅ Google result: $result');
+
+      final uri = Uri.parse(result);
+      final token = uri.queryParameters['token'];
+
+      if (token != null) {
+        // ✅ เก็บ token
+        await storage.write(key: 'access_token', value: token);
+
+        // (Optional) print token เพื่อตรวจสอบ
+        print('Token saved: $token');
+
+        // ✅ เปลี่ยนเส้นทางไปหน้า home
+        Get.offNamed('/home');
       } else {
-        throw Exception('Cannot open Google Sign-In page');
+        showError('Token not found in callback URL');
       }
     } catch (e) {
       showError('Google Sign-In failed: $e');
