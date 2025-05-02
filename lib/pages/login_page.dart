@@ -1,3 +1,4 @@
+import 'package:botbuilder/services/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -20,6 +21,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool loading = false;
   final storage = FlutterSecureStorage();
+  final authService = AuthService();
 
   void login() async {
     final email = emailController.text.trim();
@@ -45,7 +47,8 @@ class _LoginPageState extends State<LoginPage> {
       final data = json.decode(response.body);
 
       if (response.statusCode == 201 && data['access_token'] != null) {
-        await storage.write(key: 'access_token', value: data['access_token']);
+        await authService.saveToken(data['access_token']);
+        await authService.saveUser(data['user']);
         if (Get.isDialogOpen == true && mounted) {
           Get.back();
         }
@@ -86,20 +89,27 @@ class _LoginPageState extends State<LoginPage> {
       final result = await FlutterWebAuth2.authenticate(
         url: '${dotenv.env['API_BASE_URL']}/auth/google',
         callbackUrlScheme: callbackScheme,
+        preferEphemeral: true, // ไม่จำ session (login ใหม่ตลอด)
       );
-      print('✅ Google result: $result');
 
       final uri = Uri.parse(result);
       final token = uri.queryParameters['token'];
 
       if (token != null) {
-        // ✅ เก็บ token
-        await storage.write(key: 'access_token', value: token);
-
-        // (Optional) print token เพื่อตรวจสอบ
-        print('Token saved: $token');
-
-        // ✅ เปลี่ยนเส้นทางไปหน้า home
+        // เก็บ token
+        await authService.saveToken(token);
+        final meRes = await http.get(
+          Uri.parse('${dotenv.env['API_BASE_URL']}/auth/me'),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+        if (meRes.statusCode == 200) {
+          final userData = json.decode(meRes.body);
+          await authService.saveUser(userData);
+        } else {
+          showError('Cannot fetch user profile from token');
+          return;
+        }
+        //ไปหน้า home
         Get.offNamed('/home');
       } else {
         showError('Token not found in callback URL');

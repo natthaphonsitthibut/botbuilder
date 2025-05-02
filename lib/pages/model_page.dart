@@ -30,11 +30,7 @@ class _ModelPageState extends State<ModelPage> {
                     'Model',
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  AddButton(
-                    onPressed: () {
-                      // TODO: handle add model
-                    },
-                  ),
+                  AddButton(onPressed: () {}),
                 ],
               ),
               const SizedBox(height: 12),
@@ -51,7 +47,7 @@ class _ModelPageState extends State<ModelPage> {
               // Grid List
               Expanded(
                 child: GridView.builder(
-                  itemCount: 12, // TODO: replace with filtered data
+                  itemCount: 12,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     crossAxisSpacing: 10,

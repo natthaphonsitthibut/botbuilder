@@ -1,3 +1,4 @@
+import 'package:botbuilder/layouts/main_layout.dart';
 import 'package:botbuilder/pages/checkin_page.dart';
 import 'package:botbuilder/pages/course_page.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,7 @@ import 'package:botbuilder/pages/model_page.dart';
 
 final List<GetPage> appRoutes = [
   GetPage(name: '/login', page: () => const LoginPage()),
-  GetPage(name: '/home', page: () => const HomePage()),
+  GetPage(name: '/home', page: () => const MainLayout(page: HomePage())),
   GetPage(name: '/users', page: () => const UserPage()),
   GetPage(name: '/students', page: () => const StudentPage()),
   GetPage(name: '/models', page: () => const ModelPage()),
