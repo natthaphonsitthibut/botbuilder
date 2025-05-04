@@ -22,7 +22,7 @@ class ModelService {
       'pdfUrl': model.pdfUrl,
       'courseId': model.courseId,
       if (file != null)
-        'image': await MultipartFile.fromFile(
+        'file': await MultipartFile.fromFile(
           file.path,
           filename: file.path.split('/').last,
         ),
@@ -38,7 +38,7 @@ class ModelService {
       'pdfUrl': model.pdfUrl,
       'courseId': model.courseId,
       if (file != null)
-        'image': await MultipartFile.fromFile(
+        'file': await MultipartFile.fromFile(
           file.path,
           filename: file.path.split('/').last,
         ),

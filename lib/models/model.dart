@@ -1,16 +1,16 @@
 class Model {
-  final int id;
+  final int? id;
   final String name;
   final String? imageUrl;
   final String? pdfUrl;
   final int? courseId;
 
   Model({
-    required this.id,
+    this.id,
     required this.name,
-    required this.imageUrl,
-    required this.pdfUrl,
-    required this.courseId,
+    this.imageUrl,
+    this.pdfUrl,
+    this.courseId,
   });
 
   factory Model.fromJson(Map<String, dynamic> json) => Model(

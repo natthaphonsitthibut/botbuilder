@@ -112,8 +112,8 @@ class _CoursePageState extends State<CoursePage> {
                                             model.imageUrl != null
                                                 ? Image.network(
                                                   '${dotenv.env['API_BASE_URL']}${model.imageUrl}',
-                                                  width: 120,
-                                                  height: 120,
+                                                  width: 80,
+                                                  height: 80,
                                                   fit: BoxFit.contain,
                                                 )
                                                 : Container(
@@ -173,7 +173,7 @@ class _CoursePageState extends State<CoursePage> {
         child:
             isLoading
                 ? const Center(child: CupertinoActivityIndicator())
-                : SingleChildScrollView(
+                : Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,61 +236,63 @@ class _CoursePageState extends State<CoursePage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Course Cards
-                      Column(
-                        children:
-                            filteredCourses.map((course) {
-                              final categoryName = getCategoryName(
-                                course.courseCategoryId,
-                              );
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: GestureDetector(
-                                  onTap: () => showModelDialog(context, course),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: CupertinoColors.systemGrey5,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: Image.asset(
-                                            'assets/images/legospike.png',
-                                            width: 80,
-                                            height: 80,
-                                            fit: BoxFit.cover,
-                                          ),
+                      // Scrollable Course List
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: filteredCourses.length,
+                          itemBuilder: (_, index) {
+                            final course = filteredCourses[index];
+                            final categoryName = getCategoryName(
+                              course.courseCategoryId,
+                            );
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: GestureDetector(
+                                onTap: () => showModelDialog(context, course),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.systemGrey5,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.asset(
+                                          'assets/images/legospike.png',
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
                                         ),
-                                        const SizedBox(width: 12),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              course.name,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            course.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                            Text(
-                                              categoryName,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                              ),
+                                          ),
+                                          Text(
+                                            categoryName,
+                                            style: const TextStyle(
+                                              fontSize: 14,
                                             ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            }).toList(),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),

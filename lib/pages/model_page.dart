@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:botbuilder/pages/addmodel_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:botbuilder/widgets/add_button.dart';
@@ -86,8 +85,21 @@ class _ModelPageState extends State<ModelPage> {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   AddButton(
-                    onPressed: () {
-                      // TODO: ไปหน้าเพิ่ม model
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => const AddModelPage(),
+                        ),
+                      );
+
+                      // If model was added successfully, reload the models list
+                      if (result == true) {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        await loadModels();
+                      }
                     },
                   ),
                 ],
