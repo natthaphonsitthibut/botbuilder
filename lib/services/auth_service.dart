@@ -16,7 +16,6 @@ class AuthService {
 
   Future<void> saveUser(Map<String, dynamic> user) async {
     await storage.write(key: 'user', value: jsonEncode(user));
-    print(user);
   }
 
   Future<Map<String, dynamic>?> getUser() async {
