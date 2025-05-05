@@ -245,6 +245,29 @@ class _CoursePageState extends State<CoursePage> {
                             final categoryName = getCategoryName(
                               course.courseCategoryId,
                             );
+                            final firstModel =
+                                course.modelsId.isNotEmpty
+                                    ? allModels.firstWhere(
+                                      (m) => m.id == course.modelsId.first,
+                                      orElse:
+                                          () => Model(name: '', imageUrl: null),
+                                    )
+                                    : null;
+
+                            final imageWidget =
+                                firstModel?.imageUrl != null
+                                    ? Image.network(
+                                      '${dotenv.env['API_BASE_URL']}${firstModel!.imageUrl}',
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                    )
+                                    : Image.asset(
+                                      'assets/images/legospike.png',
+                                      width: 80,
+                                      height: 80,
+                                      fit: BoxFit.cover,
+                                    );
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: GestureDetector(
@@ -259,12 +282,39 @@ class _CoursePageState extends State<CoursePage> {
                                     children: [
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
-                                        child: Image.asset(
-                                          'assets/images/legospike.png',
-                                          width: 80,
-                                          height: 80,
-                                          fit: BoxFit.cover,
-                                        ),
+                                        child:
+                                            (() {
+                                              final firstModel =
+                                                  course.modelsId.isNotEmpty
+                                                      ? allModels.firstWhere(
+                                                        (m) =>
+                                                            m.id ==
+                                                            course
+                                                                .modelsId
+                                                                .first,
+                                                        orElse:
+                                                            () => Model(
+                                                              name: '',
+                                                              imageUrl: null,
+                                                            ),
+                                                      )
+                                                      : null;
+
+                                              return firstModel?.imageUrl !=
+                                                      null
+                                                  ? Image.network(
+                                                    '${dotenv.env['API_BASE_URL']}${firstModel!.imageUrl}',
+                                                    width: 80,
+                                                    height: 80,
+                                                    fit: BoxFit.cover,
+                                                  )
+                                                  : Image.asset(
+                                                    'assets/images/legospike.png',
+                                                    width: 80,
+                                                    height: 80,
+                                                    fit: BoxFit.cover,
+                                                  );
+                                            })(),
                                       ),
                                       const SizedBox(width: 12),
                                       Column(
