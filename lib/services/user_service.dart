@@ -26,6 +26,7 @@ class UserService {
       'gender': user.gender,
       'birthdate': user.birthdate,
       'roleId': user.roleId,
+      'branchId': user.branchId,
       if (file != null)
         'file': await MultipartFile.fromFile(
           file.path,
@@ -47,6 +48,7 @@ class UserService {
       'gender': user.gender,
       'birthdate': user.birthdate,
       'roleId': user.roleId,
+      'branchId': user.branchId,
       if (file != null)
         'file': await MultipartFile.fromFile(
           file.path,

@@ -44,6 +44,7 @@ dependencies:
   flutter_web_auth_2: ^2.0.3
   flutter_secure_storage: ^9.0.0
   image_picker: ^1.1.2
+  intl: ^0.18.1
 #   flutter_launcher_icons: "^0.14.3"
 
 # flutter_icons:

@@ -9,6 +9,7 @@ class User {
   final String? imageUrl;
   final String birthdate;
   final int roleId;
+  final int branchId;
 
   User({
     required this.id,
@@ -18,9 +19,10 @@ class User {
     required this.email,
     required this.password,
     required this.gender,
-    required this.imageUrl,
+    this.imageUrl,
     required this.birthdate,
     required this.roleId,
+    required this.branchId,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -33,7 +35,8 @@ class User {
     gender: json['gender'],
     imageUrl: json['imageUrl'] as String?,
     birthdate: json['birthdate'],
-    roleId: json['role']['id'] as int, // สมมติ nested
+    roleId: json['role']['id'] as int,
+    branchId: json['branch']?['id'],
   );
 
   Map<String, dynamic> toJson() => {
@@ -47,5 +50,6 @@ class User {
     'imageUrl': imageUrl,
     'birthdate': birthdate,
     'roleId': roleId,
+    'branchId': branchId,
   };
 }

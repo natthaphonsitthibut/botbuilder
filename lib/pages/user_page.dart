@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:botbuilder/models/user.dart';
 import 'package:botbuilder/services/user_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get/get.dart';
+import '../pages/adduser_page.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -25,11 +27,39 @@ class _UserPageState extends State<UserPage> {
   }
 
   Future<void> loadUsers() async {
+    setState(() => isLoading = true);
     final fetched = await _userService.getUsers();
     setState(() {
       users = fetched;
       isLoading = false;
     });
+  }
+
+  Future<void> deleteUser(int id) async {
+    final confirm = await showCupertinoDialog<bool>(
+      context: context,
+      builder:
+          (_) => CupertinoAlertDialog(
+            title: const Text('Confirm Delete'),
+            content: const Text('Are you sure you want to delete this user?'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                child: const Text('Delete'),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm == true) {
+      await _userService.deleteUser(id);
+      await loadUsers();
+    }
   }
 
   @override
@@ -53,7 +83,7 @@ class _UserPageState extends State<UserPage> {
                   : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header: Title + Add Button
+                      // Header
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -65,15 +95,18 @@ class _UserPageState extends State<UserPage> {
                             ),
                           ),
                           AddButton(
-                            onPressed: () {
-                              // TODO: ADD action
+                            onPressed: () async {
+                              final result = await Get.to(
+                                () => const AddUserPage(),
+                              );
+                              if (result == true) await loadUsers();
                             },
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
 
-                      // Search Bar (แยกมาแล้ว)
+                      // Search Bar
                       SearchBar(
                         placeholder: 'Search...',
                         onChanged: (value) {
@@ -84,66 +117,96 @@ class _UserPageState extends State<UserPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Grid View
+                      // User List
                       Expanded(
-                        child: GridView.count(
-                          crossAxisCount: 1,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 4,
-                          children:
-                              filteredUsers.map((user) {
-                                return Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: CupertinoColors.systemGrey5,
+                        child: ListView.separated(
+                          itemCount: filteredUsers.length,
+                          separatorBuilder:
+                              (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final user = filteredUsers[index];
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemGrey5,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
+                                    child:
+                                        user.imageUrl != null
+                                            ? Image.network(
+                                              '${dotenv.env['API_BASE_URL']}${user.imageUrl!}',
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            )
+                                            : const Icon(
+                                              CupertinoIcons.person,
+                                              size: 60,
+                                            ),
                                   ),
-                                  child: Row(
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          user.firstname,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          user.email,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: CupertinoColors.inactiveGray,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child:
-                                            user.imageUrl != null
-                                                ? Image.network(
-                                                  dotenv.env['API_BASE_URL']! +
-                                                      user.imageUrl!,
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                )
-                                                : const Icon(
-                                                  CupertinoIcons.person,
-                                                  size: 60,
-                                                ),
+                                      CupertinoButton(
+                                        padding: EdgeInsets.zero,
+                                        minSize: 0,
+                                        onPressed: () async {
+                                          final result = await Get.to(
+                                            () =>
+                                                AddUserPage(existingUser: user),
+                                          );
+                                          if (result == true) await loadUsers();
+                                        },
+                                        child: const Icon(
+                                          CupertinoIcons.pencil,
+                                          size: 22,
+                                        ),
                                       ),
-                                      const SizedBox(width: 12),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            user.firstname,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          Text(
-                                            user.email,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  CupertinoColors.inactiveGray,
-                                            ),
-                                          ),
-                                        ],
+                                      CupertinoButton(
+                                        padding: EdgeInsets.zero,
+                                        minSize: 0,
+                                        onPressed: () => deleteUser(user.id),
+                                        child: const Icon(
+                                          CupertinoIcons.delete,
+                                          size: 22,
+                                          color: CupertinoColors.destructiveRed,
+                                        ),
                                       ),
                                     ],
                                   ),
-                                );
-                              }).toList(),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
