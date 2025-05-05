@@ -5,6 +5,7 @@ import 'package:botbuilder/widgets/add_button.dart';
 import 'package:botbuilder/widgets/search_bar.dart';
 import 'package:botbuilder/services/model_service.dart';
 import 'package:botbuilder/models/model.dart';
+import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ModelPage extends StatefulWidget {
@@ -92,8 +93,6 @@ class _ModelPageState extends State<ModelPage> {
                           builder: (context) => const AddModelPage(),
                         ),
                       );
-
-                      // If model was added successfully, reload the models list
                       if (result == true) {
                         setState(() {
                           isLoading = true;
@@ -134,7 +133,7 @@ class _ModelPageState extends State<ModelPage> {
                           ),
                           child: Column(
                             children: [
-                              // รูปภาพแบบย่อให้พอดี
+                              // รูปภาพ
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () => openPdfUrl(model.pdfUrl),
@@ -146,9 +145,7 @@ class _ModelPageState extends State<ModelPage> {
                                           model.imageUrl != null
                                               ? Image.network(
                                                 '${dotenv.env['API_BASE_URL']}${model.imageUrl}',
-                                                fit:
-                                                    BoxFit
-                                                        .contain, // 👈 ย่อให้พอดี
+                                                fit: BoxFit.contain,
                                               )
                                               : Container(
                                                 color:
@@ -159,7 +156,7 @@ class _ModelPageState extends State<ModelPage> {
                                 ),
                               ),
 
-                              // ชื่อ model ด้านล่าง
+                              // ชื่อโมเดล
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 4,
@@ -175,6 +172,87 @@ class _ModelPageState extends State<ModelPage> {
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                 ),
+                              ),
+
+                              // ปุ่ม Edit / Delete
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // ปุ่ม Edit
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: const Icon(
+                                      CupertinoIcons.pencil,
+                                      size: 18,
+                                    ),
+                                    onPressed: () async {
+                                      final result = await Get.to(
+                                        () =>
+                                            AddModelPage(existingModel: model),
+                                      );
+
+                                      if (result == true) {
+                                        await loadModels();
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // ปุ่ม Delete
+                                  CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    child: const Icon(
+                                      CupertinoIcons.delete,
+                                      size: 18,
+                                      color: CupertinoColors.systemRed,
+                                    ),
+                                    onPressed: () async {
+                                      final confirm = await showCupertinoDialog<
+                                        bool
+                                      >(
+                                        context: context,
+                                        builder:
+                                            (context) => CupertinoAlertDialog(
+                                              title: const Text(
+                                                'Confirm Delete',
+                                              ),
+                                              content: const Text(
+                                                'Are you sure you want to delete this model?',
+                                              ),
+                                              actions: [
+                                                CupertinoDialogAction(
+                                                  child: const Text('Cancel'),
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                        false,
+                                                      ),
+                                                ),
+                                                CupertinoDialogAction(
+                                                  isDestructiveAction: true,
+                                                  child: const Text('Delete'),
+                                                  onPressed:
+                                                      () => Navigator.pop(
+                                                        context,
+                                                        true,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                      );
+
+                                      if (confirm == true) {
+                                        try {
+                                          await _modelService.deleteModel(
+                                            model.id!,
+                                          );
+                                          await loadModels();
+                                        } catch (e) {
+                                          print('Delete error: $e');
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
                           ),

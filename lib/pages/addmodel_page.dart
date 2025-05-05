@@ -1,14 +1,18 @@
 import 'dart:io';
+import 'dart:math';
+import 'package:botbuilder/models/courseCategory.dart';
+import 'package:botbuilder/services/courseCategory_service.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:botbuilder/models/model.dart';
 import 'package:botbuilder/models/course.dart';
 import 'package:botbuilder/services/model_service.dart';
 import 'package:botbuilder/services/course_service.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter/material.dart' show Icons;
 
 class AddModelPage extends StatefulWidget {
-  const AddModelPage({super.key});
+  final Model? existingModel;
+  const AddModelPage({super.key, this.existingModel});
 
   @override
   State<AddModelPage> createState() => _AddModelPageState();
@@ -17,41 +21,59 @@ class AddModelPage extends StatefulWidget {
 class _AddModelPageState extends State<AddModelPage> {
   final _modelService = ModelService();
   final _courseService = CourseService();
+  final _courseCategoryService = CourseCategoryService();
 
   final _nameController = TextEditingController();
   final _pdfUrlController = TextEditingController();
-  final _courseIdController = TextEditingController();
 
   File? _imageFile;
   bool _isLoading = false;
 
+  List<CourseCategory> courseCategories = [];
   List<Course> courses = [];
+  CourseCategory? selectedCategory;
   Course? selectedCourse;
 
   @override
   void initState() {
     super.initState();
-    loadCourses();
+    _nameController.text = widget.existingModel?.name ?? '';
+    _pdfUrlController.text = widget.existingModel?.pdfUrl ?? '';
+    loadCategoriesAndCourses();
   }
 
-  Future<void> loadCourses() async {
+  Future<void> loadCategoriesAndCourses() async {
     try {
-      final data = await _courseService.getCourses();
+      final categories = await _courseCategoryService.getAll();
+      final allCourses = await _courseService.getCourses();
+
       setState(() {
-        courses = data;
-        if (courses.isNotEmpty) {
-          selectedCourse = courses.first;
-          _courseIdController.text = selectedCourse!.id.toString();
+        courseCategories = categories;
+        courses = allCourses;
+
+        if (widget.existingModel != null) {
+          final currentCourse = allCourses.firstWhere(
+            (c) => c.id == widget.existingModel!.courseId,
+          );
+          selectedCourse = currentCourse;
+          selectedCategory = categories.firstWhere(
+            (cat) => cat.id == currentCourse.courseCategoryId,
+          );
+        } else {
+          selectedCategory = categories.isNotEmpty ? categories.first : null;
+          selectedCourse = allCourses.firstWhere(
+            (c) => c.courseCategoryId == selectedCategory?.id,
+          );
         }
       });
     } catch (e) {
-      print("Error loading courses: $e");
+      print("Error loading data: $e");
     }
   }
 
   Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
       setState(() {
@@ -62,13 +84,11 @@ class _AddModelPageState extends State<AddModelPage> {
 
   Future<void> _createModel() async {
     if (_nameController.text.isEmpty || selectedCourse == null) {
-      _showErrorDialog('กรุณากรอกชื่อและเลือกคอร์ส');
+      _showErrorDialog('Please fill all required fields');
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final model = Model(
@@ -79,21 +99,37 @@ class _AddModelPageState extends State<AddModelPage> {
       );
 
       await _modelService.createModel(model, _imageFile);
-
-      if (context.mounted) {
-        Navigator.of(context).pop(true);
-      }
+      if (mounted) Get.back(result: true);
     } catch (e) {
-      print('Error creating model: $e');
-      if (context.mounted) {
-        _showErrorDialog('เกิดข้อผิดพลาด: $e');
-      }
+      _showErrorDialog('Error: $e');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _updateModel(int id) async {
+    if (_nameController.text.isEmpty || selectedCourse == null) {
+      _showErrorDialog('Please fill all required fields');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final model = Model(
+        id: id,
+        name: _nameController.text,
+        pdfUrl:
+            _pdfUrlController.text.isNotEmpty ? _pdfUrlController.text : null,
+        courseId: selectedCourse!.id,
+      );
+
+      await _modelService.updateModel(id, model, _imageFile);
+      if (mounted) Get.back(result: true);
+    } catch (e) {
+      _showErrorDialog('Error: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -101,13 +137,13 @@ class _AddModelPageState extends State<AddModelPage> {
     showCupertinoDialog(
       context: context,
       builder:
-          (context) => CupertinoAlertDialog(
-            title: const Text('ข้อผิดพลาด'),
+          (_) => CupertinoAlertDialog(
+            title: const Text('Error'),
             content: Text(message),
             actions: [
               CupertinoDialogAction(
-                child: const Text('ตกลง'),
-                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+                onPressed: () => Get.back(),
               ),
             ],
           ),
@@ -118,22 +154,33 @@ class _AddModelPageState extends State<AddModelPage> {
   void dispose() {
     _nameController.dispose();
     _pdfUrlController.dispose();
-    _courseIdController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.existingModel != null;
+    final filteredCourses =
+        courses
+            .where((c) => c.courseCategoryId == selectedCategory?.id)
+            .toList();
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('เพิ่มโมเดล'),
+        middle: Text(isEditing ? 'Edit Model' : 'Add Model'),
         trailing:
             _isLoading
                 ? const CupertinoActivityIndicator()
                 : CupertinoButton(
                   padding: EdgeInsets.zero,
-                  child: const Text('บันทึก'),
-                  onPressed: _createModel,
+                  child: Text(isEditing ? 'Update' : 'Save'),
+                  onPressed: () {
+                    if (isEditing) {
+                      _updateModel(widget.existingModel!.id!);
+                    } else {
+                      _createModel();
+                    }
+                  },
                 ),
       ),
       child: SafeArea(
@@ -156,10 +203,10 @@ class _AddModelPageState extends State<AddModelPage> {
                             borderRadius: BorderRadius.circular(12),
                             child: Image.file(_imageFile!, fit: BoxFit.cover),
                           )
-                          : Center(
+                          : const Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
+                              children: [
                                 Icon(
                                   CupertinoIcons.photo,
                                   size: 48,
@@ -167,7 +214,7 @@ class _AddModelPageState extends State<AddModelPage> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'แตะเพื่ออัปโหลดรูปภาพ',
+                                  'Tap to upload image',
                                   style: TextStyle(
                                     color: CupertinoColors.systemGrey,
                                   ),
@@ -179,13 +226,13 @@ class _AddModelPageState extends State<AddModelPage> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'ชื่อโมเดล *',
+                'Model Name *',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               CupertinoTextField(
                 controller: _nameController,
-                placeholder: 'กรอกชื่อโมเดล',
+                placeholder: 'Enter model name',
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   border: Border.all(color: CupertinoColors.systemGrey3),
@@ -194,13 +241,13 @@ class _AddModelPageState extends State<AddModelPage> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'ลิงก์ PDF',
+                'PDF URL',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               CupertinoTextField(
                 controller: _pdfUrlController,
-                placeholder: 'ลิงก์ PDF (ถ้ามี)',
+                placeholder: 'Optional PDF link',
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   border: Border.all(color: CupertinoColors.systemGrey3),
@@ -209,7 +256,7 @@ class _AddModelPageState extends State<AddModelPage> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'เลือกคอร์ส *',
+                'Course Category *',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -227,20 +274,34 @@ class _AddModelPageState extends State<AddModelPage> {
                           height: 250,
                           color: CupertinoColors.white,
                           child: CupertinoPicker(
+                            itemExtent: 40,
                             scrollController: FixedExtentScrollController(
-                              initialItem: courses.indexWhere(
-                                (c) => c.id == selectedCourse?.id,
+                              initialItem: max(
+                                0,
+                                courseCategories.indexWhere(
+                                  (c) => c.id == selectedCategory?.id,
+                                ),
                               ),
                             ),
-                            itemExtent: 40,
                             onSelectedItemChanged: (index) {
+                              final category = courseCategories[index];
                               setState(() {
-                                selectedCourse = courses[index];
-                                _courseIdController.text =
-                                    selectedCourse!.id.toString();
+                                selectedCategory = category;
+                                final filtered =
+                                    courses
+                                        .where(
+                                          (c) =>
+                                              c.courseCategoryId == category.id,
+                                        )
+                                        .toList();
+                                selectedCourse =
+                                    filtered.isNotEmpty ? filtered.first : null;
                               });
                             },
-                            children: courses.map((c) => Text(c.name)).toList(),
+                            children:
+                                courseCategories
+                                    .map((c) => Text(c.name))
+                                    .toList(),
                           ),
                         ),
                   );
@@ -248,10 +309,57 @@ class _AddModelPageState extends State<AddModelPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      selectedCourse?.name ?? 'เลือกคอร์ส',
-                      style: const TextStyle(fontSize: 16),
-                    ),
+                    Text(selectedCategory?.name ?? 'Select category'),
+                    const Icon(CupertinoIcons.chevron_down, size: 16),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Course *',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              CupertinoButton(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                color: CupertinoColors.systemGrey5,
+                onPressed: () {
+                  showCupertinoModalPopup(
+                    context: context,
+                    builder:
+                        (_) => Container(
+                          height: 250,
+                          color: CupertinoColors.white,
+                          child: CupertinoPicker(
+                            itemExtent: 40,
+                            scrollController: FixedExtentScrollController(
+                              initialItem: max(
+                                0,
+                                filteredCourses.indexWhere(
+                                  (c) => c.id == selectedCourse?.id,
+                                ),
+                              ),
+                            ),
+                            onSelectedItemChanged: (index) {
+                              setState(() {
+                                selectedCourse = filteredCourses[index];
+                              });
+                            },
+                            children:
+                                filteredCourses
+                                    .map((c) => Text(c.name))
+                                    .toList(),
+                          ),
+                        ),
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(selectedCourse?.name ?? 'Select course'),
                     const Icon(CupertinoIcons.chevron_down, size: 16),
                   ],
                 ),
