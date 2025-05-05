@@ -1,6 +1,7 @@
 import 'package:botbuilder/services/auth_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MainLayout extends StatefulWidget {
   final Widget page;
@@ -40,6 +41,19 @@ class _MainLayoutState extends State<MainLayout> {
     await authService.logout();
   }
 
+  ImageProvider getUserImage() {
+    if (imageUrl.isEmpty) {
+      return const AssetImage('assets/images/legospike.png');
+    }
+
+    final fullUrl =
+        imageUrl.startsWith('http')
+            ? imageUrl
+            : '${dotenv.env['API_BASE_URL']}$imageUrl';
+
+    return NetworkImage(fullUrl);
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -48,6 +62,7 @@ class _MainLayoutState extends State<MainLayout> {
         bottom: false,
         child: Column(
           children: [
+            // Header
             Container(
               height: 100,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -65,14 +80,7 @@ class _MainLayoutState extends State<MainLayout> {
                 padding: const EdgeInsets.only(top: 35),
                 child: Row(
                   children: [
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundImage:
-                          imageUrl.isNotEmpty
-                              ? NetworkImage(imageUrl)
-                              : const AssetImage('assets/images/legospike.png')
-                                  as ImageProvider,
-                    ),
+                    CircleAvatar(radius: 25, backgroundImage: getUserImage()),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -110,6 +118,7 @@ class _MainLayoutState extends State<MainLayout> {
                 ),
               ),
             ),
+            // Page content
             Expanded(child: widget.page),
           ],
         ),

@@ -44,10 +44,12 @@ class _CoursePageState extends State<CoursePage> {
 
       setState(() {
         courses = fetchedCourses;
-        categories = fetchedCategories;
+        categories = [
+          CourseCategory(id: -1, name: 'All'),
+          ...fetchedCategories,
+        ];
         allModels = fetchedModels;
-        selectedCategoryId =
-            fetchedCategories.isNotEmpty ? fetchedCategories.first.id : null;
+        selectedCategoryId = -1;
         isLoading = false;
       });
     } catch (e) {
@@ -191,9 +193,21 @@ class _CoursePageState extends State<CoursePage> {
   @override
   Widget build(BuildContext context) {
     final filteredCourses =
-        courses
-            .where((course) => course.courseCategoryId == selectedCategoryId)
-            .toList();
+        (selectedCategoryId == -1
+              ? courses
+              : courses
+                  .where(
+                    (course) => course.courseCategoryId == selectedCategoryId,
+                  )
+                  .toList())
+          ..sort((a, b) {
+            final categoryCompare = a.courseCategoryId.compareTo(
+              b.courseCategoryId,
+            );
+            return categoryCompare != 0
+                ? categoryCompare
+                : a.id.compareTo(b.id);
+          });
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(middle: Text("Course")),
@@ -227,46 +241,52 @@ class _CoursePageState extends State<CoursePage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children:
-                              categories.map((category) {
-                                final isSelected =
-                                    selectedCategoryId == category.id;
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: CupertinoButton(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 6,
+                      CupertinoButton(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        color: const Color(0xFFFF9A9A),
+                        child: Text(
+                          categories
+                              .firstWhere(
+                                (c) => c.id == selectedCategoryId,
+                                orElse:
+                                    () => CourseCategory(
+                                      id: -1,
+                                      name: 'Select Category',
                                     ),
-                                    color:
-                                        isSelected
-                                            ? const Color.fromARGB(
-                                              255,
-                                              255,
-                                              13,
-                                              0,
-                                            )
-                                            : const Color(0xFFFF9A9A),
-                                    child: Text(
-                                      category.name,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    onPressed: () {
+                              )
+                              .name,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () {
+                          showCupertinoModalPopup(
+                            context: context,
+                            builder:
+                                (_) => SizedBox(
+                                  height: 250,
+                                  child: CupertinoPicker(
+                                    itemExtent: 40,
+                                    scrollController:
+                                        FixedExtentScrollController(
+                                          initialItem: categories.indexWhere(
+                                            (c) => c.id == selectedCategoryId,
+                                          ),
+                                        ),
+                                    onSelectedItemChanged: (index) {
                                       setState(() {
-                                        selectedCategoryId = category.id;
+                                        selectedCategoryId =
+                                            categories[index].id;
                                       });
                                     },
+                                    children:
+                                        categories
+                                            .map((c) => Text(c.name))
+                                            .toList(),
                                   ),
-                                );
-                              }).toList(),
-                        ),
+                                ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 16), // ต่อจาก build()
                       Expanded(
                         child: ListView.builder(
                           itemCount: filteredCourses.length,
@@ -300,6 +320,7 @@ class _CoursePageState extends State<CoursePage> {
                                       height: 80,
                                       fit: BoxFit.cover,
                                     );
+
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Container(
