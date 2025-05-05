@@ -14,11 +14,11 @@ class Model {
   });
 
   factory Model.fromJson(Map<String, dynamic> json) => Model(
-    id: json['id'],
-    name: json['name'],
+    id: json['id'] as int?,
+    name: json['name'] as String,
     imageUrl: json['imageUrl'] as String?,
-    pdfUrl: json['pdfUrl'],
-    courseId: json['course']?['id'] as int,
+    pdfUrl: json['pdfUrl'] as String?,
+    courseId: json['course']?['id'] as int?,
   );
 
   Map<String, dynamic> toJson() => {

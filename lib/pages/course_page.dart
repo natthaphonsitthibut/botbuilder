@@ -1,4 +1,5 @@
 import 'package:botbuilder/models/courseCategory.dart';
+import 'package:botbuilder/pages/addcourse_page.dart';
 import 'package:botbuilder/services/courseCategory_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:botbuilder/models/course.dart';
 import 'package:botbuilder/models/model.dart';
 import 'package:botbuilder/services/course_service.dart';
 import 'package:botbuilder/services/model_service.dart';
+import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -74,20 +76,21 @@ class _CoursePageState extends State<CoursePage> {
   }
 
   void showModelDialog(BuildContext context, Course course) {
+    final modelIds = course.modelsId ?? [];
     showCupertinoModalPopup(
       context: context,
       builder:
           (_) => CupertinoActionSheet(
             title: Text(course.name),
             message:
-                course.modelsId.isEmpty
+                modelIds.isEmpty
                     ? const Text("No models in this course.")
                     : SizedBox(
                       height: 300,
                       child: SingleChildScrollView(
                         child: Column(
                           children:
-                              course.modelsId.map((id) {
+                              modelIds.map((id) {
                                 final model = allModels.firstWhere(
                                   (m) => m.id == id,
                                   orElse:
@@ -99,7 +102,6 @@ class _CoursePageState extends State<CoursePage> {
                                         courseId: null,
                                       ),
                                 );
-
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 6,
@@ -160,6 +162,32 @@ class _CoursePageState extends State<CoursePage> {
     );
   }
 
+  Future<void> deleteCourse(int id) async {
+    final confirm = await showCupertinoDialog(
+      context: context,
+      builder:
+          (_) => CupertinoAlertDialog(
+            title: const Text('Confirm Delete'),
+            content: const Text('Are you sure you want to delete this course?'),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text('Cancel'),
+                onPressed: () => Get.back(result: false),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                child: const Text('Delete'),
+                onPressed: () => Get.back(result: true),
+              ),
+            ],
+          ),
+    );
+    if (confirm == true) {
+      await _courseService.deleteCourse(id);
+      await loadData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredCourses =
@@ -178,7 +206,6 @@ class _CoursePageState extends State<CoursePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -189,12 +216,17 @@ class _CoursePageState extends State<CoursePage> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          AddButton(onPressed: () {}),
+                          AddButton(
+                            onPressed: () async {
+                              final result = await Get.to(
+                                () => AddCoursePage(),
+                              );
+                              if (result == true) await loadData();
+                            },
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
-
-                      // Category Tabs
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -235,8 +267,6 @@ class _CoursePageState extends State<CoursePage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Scrollable Course List
                       Expanded(
                         child: ListView.builder(
                           itemCount: filteredCourses.length,
@@ -245,15 +275,17 @@ class _CoursePageState extends State<CoursePage> {
                             final categoryName = getCategoryName(
                               course.courseCategoryId,
                             );
+                            final hasModels =
+                                course.modelsId != null &&
+                                course.modelsId!.isNotEmpty;
                             final firstModel =
-                                course.modelsId.isNotEmpty
+                                hasModels
                                     ? allModels.firstWhere(
-                                      (m) => m.id == course.modelsId.first,
+                                      (m) => m.id == course.modelsId!.first,
                                       orElse:
                                           () => Model(name: '', imageUrl: null),
                                     )
                                     : null;
-
                             final imageWidget =
                                 firstModel?.imageUrl != null
                                     ? Image.network(
@@ -270,54 +302,21 @@ class _CoursePageState extends State<CoursePage> {
                                     );
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
-                              child: GestureDetector(
-                                onTap: () => showModelDialog(context, course),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: CupertinoColors.systemGrey5,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child:
-                                            (() {
-                                              final firstModel =
-                                                  course.modelsId.isNotEmpty
-                                                      ? allModels.firstWhere(
-                                                        (m) =>
-                                                            m.id ==
-                                                            course
-                                                                .modelsId
-                                                                .first,
-                                                        orElse:
-                                                            () => Model(
-                                                              name: '',
-                                                              imageUrl: null,
-                                                            ),
-                                                      )
-                                                      : null;
-
-                                              return firstModel?.imageUrl !=
-                                                      null
-                                                  ? Image.network(
-                                                    '${dotenv.env['API_BASE_URL']}${firstModel!.imageUrl}',
-                                                    width: 80,
-                                                    height: 80,
-                                                    fit: BoxFit.cover,
-                                                  )
-                                                  : Image.asset(
-                                                    'assets/images/legospike.png',
-                                                    width: 80,
-                                                    height: 80,
-                                                    fit: BoxFit.cover,
-                                                  );
-                                            })(),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Column(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.systemGrey5,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: imageWidget,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -336,8 +335,39 @@ class _CoursePageState extends State<CoursePage> {
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    Column(
+                                      children: [
+                                        CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () async {
+                                            final result = await Get.to(
+                                              () => AddCoursePage(
+                                                existingCourse: course,
+                                              ),
+                                            );
+                                            if (result == true)
+                                              await loadData();
+                                          },
+                                          child: const Icon(
+                                            CupertinoIcons.pencil,
+                                            size: 24,
+                                          ),
+                                        ),
+                                        CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed:
+                                              () => deleteCourse(course.id),
+                                          child: const Icon(
+                                            CupertinoIcons.delete,
+                                            size: 24,
+                                            color:
+                                                CupertinoColors.destructiveRed,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             );

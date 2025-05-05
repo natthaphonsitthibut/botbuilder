@@ -87,12 +87,7 @@ class _ModelPageState extends State<ModelPage> {
                   ),
                   AddButton(
                     onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => const AddModelPage(),
-                        ),
-                      );
+                      final result = await Get.to(() => const AddModelPage());
                       if (result == true) {
                         setState(() {
                           isLoading = true;
