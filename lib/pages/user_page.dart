@@ -1,3 +1,5 @@
+import 'package:botbuilder/services/branch_service.dart';
+import 'package:botbuilder/services/role_service.dart';
 import 'package:botbuilder/widgets/add_button.dart';
 import 'package:botbuilder/widgets/search_bar.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +18,8 @@ class UserPage extends StatefulWidget {
 
 class _UserPageState extends State<UserPage> {
   final UserService _userService = UserService();
+  final BranchService _branchService = BranchService();
+  final RoleService _roleService = RoleService();
   List<User> users = [];
   String searchQuery = '';
   bool isLoading = true;
@@ -28,7 +32,9 @@ class _UserPageState extends State<UserPage> {
 
   Future<void> loadUsers() async {
     setState(() => isLoading = true);
+
     final fetched = await _userService.getUsers();
+
     setState(() {
       users = fetched;
       isLoading = false;
@@ -62,6 +68,17 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
+  int calculateAge(String birthdate) {
+    final birthDate = DateTime.parse(birthdate);
+    final today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month ||
+        (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredUsers =
@@ -80,7 +97,6 @@ class _UserPageState extends State<UserPage> {
       child: SafeArea(
         child: Column(
           children: [
-            // ส่วนหัว (คงที่)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Column(
@@ -119,7 +135,6 @@ class _UserPageState extends State<UserPage> {
                 ],
               ),
             ),
-            // ส่วนกริดผู้ใช้ (เลื่อนได้)
             Expanded(
               child: CustomScrollView(
                 slivers: [
@@ -153,20 +168,15 @@ class _UserPageState extends State<UserPage> {
                                 ),
                               ),
                             )
-                            : SliverGrid(
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                    childAspectRatio: 0.8,
-                                  ),
+                            : SliverList(
                               delegate: SliverChildBuilderDelegate((
                                 context,
                                 index,
                               ) {
                                 final user = filteredUsers[index];
                                 return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: CupertinoColors.white,
                                     borderRadius: BorderRadius.circular(16),
@@ -181,78 +191,152 @@ class _UserPageState extends State<UserPage> {
                                     ],
                                   ),
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child:
-                                            user.imageUrl != null &&
-                                                    user.imageUrl!.isNotEmpty
-                                                ? Image.network(
-                                                  '${dotenv.env['API_BASE_URL']}${user.imageUrl!}',
-                                                  width: 150,
-                                                  height: 150,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (
-                                                    context,
-                                                    error,
-                                                    stackTrace,
-                                                  ) {
-                                                    return Container(
-                                                      width: 150,
-                                                      height: 150,
+                                      Row(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child:
+                                                user.imageUrl != null &&
+                                                        user
+                                                            .imageUrl!
+                                                            .isNotEmpty
+                                                    ? Image.network(
+                                                      '${dotenv.env['API_BASE_URL']}${user.imageUrl!}',
+                                                      width: 60,
+                                                      height: 60,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return Container(
+                                                          width: 60,
+                                                          height: 60,
+                                                          color:
+                                                              CupertinoColors
+                                                                  .systemGrey4,
+                                                          child: const Icon(
+                                                            CupertinoIcons
+                                                                .person,
+                                                            size: 40,
+                                                            color:
+                                                                CupertinoColors
+                                                                    .inactiveGray,
+                                                          ),
+                                                        );
+                                                      },
+                                                    )
+                                                    : Container(
+                                                      width: 60,
+                                                      height: 60,
                                                       color:
                                                           CupertinoColors
                                                               .systemGrey4,
                                                       child: const Icon(
                                                         CupertinoIcons.person,
-                                                        size: 120,
+                                                        size: 40,
                                                         color:
                                                             CupertinoColors
                                                                 .inactiveGray,
                                                       ),
-                                                    );
-                                                  },
-                                                )
-                                                : Container(
-                                                  width: 150,
-                                                  height: 150,
-                                                  color:
-                                                      CupertinoColors
-                                                          .systemGrey4,
-                                                  child: const Icon(
-                                                    CupertinoIcons.person,
-                                                    size: 120,
+                                                    ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${user.firstname} ${user.lastname}',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 16,
+                                                    color:
+                                                        CupertinoColors.black,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  user.email,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
                                                     color:
                                                         CupertinoColors
                                                             .inactiveGray,
                                                   ),
                                                 ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 8),
+
                                       Text(
-                                        user.firstname,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16,
-                                          color: CupertinoColors.black,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
+                                        'Username: ${user.username}',
+                                        style: const TextStyle(fontSize: 14),
                                       ),
                                       Text(
-                                        user.email,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: CupertinoColors.inactiveGray,
+                                        'Gender: ${user.gender}',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      Text(
+                                        'Age: ${calculateAge(user.birthdate)}',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      Text(
+                                        'Birthdate: ${user.birthdate}',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+
+                                      FutureBuilder(
+                                        future: _roleService.getById(
+                                          user.roleId,
                                         ),
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const Text('Loading...');
+                                          }
+                                          final role = snapshot.data;
+                                          return Text(
+                                            'Role: ${role!.name}',
+
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      FutureBuilder(
+                                        future: _branchService.getById(
+                                          user.branchId,
+                                        ),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const Text('Loading...');
+                                          }
+                                          final branch = snapshot.data;
+                                          return Text(
+                                            'Branch: ${branch!.name}',
+
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          );
+                                        },
                                       ),
                                       const SizedBox(height: 8),
                                       Row(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                            MainAxisAlignment.end,
                                         children: [
                                           CupertinoButton(
                                             padding: const EdgeInsets.symmetric(

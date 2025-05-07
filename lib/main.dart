@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'routes.dart';
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
@@ -16,6 +17,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetCupertinoApp(
+      navigatorObservers: [
+        routeObserver,
+      ], //แอปสามารถสังเกตการเปลี่ยนแปลงของเส้นทาง (route).
       debugShowCheckedModeBanner: false,
       initialRoute: '/login',
       getPages: appRoutes,

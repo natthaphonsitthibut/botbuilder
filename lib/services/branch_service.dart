@@ -9,4 +9,9 @@ class BranchService {
     final res = await _dio.get('/branches');
     return (res.data as List).map((e) => Branch.fromJson(e)).toList();
   }
+
+  Future<Branch> getById(int id) async {
+    final response = await _dio.get('/branches/$id');
+    return Branch.fromJson(response.data);
+  }
 }
