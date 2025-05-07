@@ -210,194 +210,277 @@ class _CoursePageState extends State<CoursePage> {
           });
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(middle: Text("Course")),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Courses'),
+        backgroundColor: CupertinoColors.systemBackground,
+      ),
       child: SafeArea(
-        child:
-            isLoading
-                ? const Center(child: CupertinoActivityIndicator())
-                : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          children: [
+            // ส่วนหัว (คงที่)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Course",
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          AddButton(
-                            onPressed: () async {
-                              final result = await Get.to(
-                                () => AddCoursePage(),
-                              );
-                              if (result == true) await loadData();
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      CupertinoButton(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        color: const Color(0xFFFF9A9A),
-                        child: Text(
-                          categories
-                              .firstWhere(
-                                (c) => c.id == selectedCategoryId,
-                                orElse:
-                                    () => CourseCategory(
-                                      id: -1,
-                                      name: 'Select Category',
-                                    ),
-                              )
-                              .name,
-                          style: const TextStyle(color: Colors.white),
+                      const Text(
+                        'Courses',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: CupertinoColors.black,
                         ),
-                        onPressed: () {
-                          showCupertinoModalPopup(
-                            context: context,
-                            builder:
-                                (_) => SizedBox(
-                                  height: 250,
-                                  child: CupertinoPicker(
-                                    itemExtent: 40,
-                                    scrollController:
-                                        FixedExtentScrollController(
-                                          initialItem: categories.indexWhere(
-                                            (c) => c.id == selectedCategoryId,
-                                          ),
-                                        ),
-                                    onSelectedItemChanged: (index) {
-                                      setState(() {
-                                        selectedCategoryId =
-                                            categories[index].id;
-                                      });
-                                    },
-                                    children:
-                                        categories
-                                            .map((c) => Text(c.name))
-                                            .toList(),
-                                  ),
-                                ),
-                          );
+                      ),
+                      AddButton(
+                        onPressed: () async {
+                          final result = await Get.to(() => AddCoursePage());
+                          if (result == true) await loadData();
                         },
-                      ),
-                      const SizedBox(height: 16), // ต่อจาก build()
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: filteredCourses.length,
-                          itemBuilder: (_, index) {
-                            final course = filteredCourses[index];
-                            final categoryName = getCategoryName(
-                              course.courseCategoryId,
-                            );
-                            final hasModels =
-                                course.modelsId != null &&
-                                course.modelsId!.isNotEmpty;
-                            final firstModel =
-                                hasModels
-                                    ? allModels.firstWhere(
-                                      (m) => m.id == course.modelsId!.first,
-                                      orElse:
-                                          () => Model(name: '', imageUrl: null),
-                                    )
-                                    : null;
-                            final imageWidget =
-                                firstModel?.imageUrl != null
-                                    ? Image.network(
-                                      '${dotenv.env['API_BASE_URL']}${firstModel!.imageUrl}',
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                    )
-                                    : Image.asset(
-                                      'assets/images/legospike.png',
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                    );
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.systemGrey5,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.all(12),
-                                child: Row(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: imageWidget,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            course.name,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Text(
-                                            categoryName,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Column(
-                                      children: [
-                                        CupertinoButton(
-                                          padding: EdgeInsets.zero,
-                                          onPressed: () async {
-                                            final result = await Get.to(
-                                              () => AddCoursePage(
-                                                existingCourse: course,
-                                              ),
-                                            );
-                                            if (result == true)
-                                              await loadData();
-                                          },
-                                          child: const Icon(
-                                            CupertinoIcons.pencil,
-                                            size: 24,
-                                          ),
-                                        ),
-                                        CupertinoButton(
-                                          padding: EdgeInsets.zero,
-                                          onPressed:
-                                              () => deleteCourse(course.id),
-                                          child: const Icon(
-                                            CupertinoIcons.delete,
-                                            size: 24,
-                                            color:
-                                                CupertinoColors.destructiveRed,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    color: const Color(0xFFFF9A9A),
+                    child: Text(
+                      categories
+                          .firstWhere(
+                            (c) => c.id == selectedCategoryId,
+                            orElse:
+                                () => CourseCategory(
+                                  id: -1,
+                                  name: 'Select Category',
+                                ),
+                          )
+                          .name,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () {
+                      showCupertinoModalPopup(
+                        context: context,
+                        builder:
+                            (_) => SizedBox(
+                              height: 250,
+                              child: CupertinoPicker(
+                                itemExtent: 40,
+                                scrollController: FixedExtentScrollController(
+                                  initialItem: categories.indexWhere(
+                                    (c) => c.id == selectedCategoryId,
+                                  ),
+                                ),
+                                onSelectedItemChanged: (index) {
+                                  setState(() {
+                                    selectedCategoryId = categories[index].id;
+                                  });
+                                },
+                                children:
+                                    categories
+                                        .map((c) => Text(c.name))
+                                        .toList(),
+                              ),
+                            ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // ส่วนกริดคอร์ส (เลื่อนได้)
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    sliver:
+                        isLoading
+                            ? const SliverToBoxAdapter(
+                              child: SizedBox(
+                                height: 200,
+                                child: Center(
+                                  child: CupertinoActivityIndicator(radius: 16),
+                                ),
+                              ),
+                            )
+                            : filteredCourses.isEmpty
+                            ? SliverToBoxAdapter(
+                              child: SizedBox(
+                                height: 200,
+                                child: Center(
+                                  child: Text(
+                                    'No courses found',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: CupertinoColors.inactiveGray,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                            : SliverGrid(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: 0.8,
+                                  ),
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                final course = filteredCourses[index];
+                                final categoryName = getCategoryName(
+                                  course.courseCategoryId,
+                                );
+                                final hasModels =
+                                    course.modelsId != null &&
+                                    course.modelsId!.isNotEmpty;
+                                final firstModel =
+                                    hasModels
+                                        ? allModels.firstWhere(
+                                          (m) => m.id == course.modelsId!.first,
+                                          orElse:
+                                              () => Model(
+                                                name: '',
+                                                imageUrl: null,
+                                              ),
+                                        )
+                                        : null;
+                                return GestureDetector(
+                                  onTap: () => showModelDialog(context, course),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: CupertinoColors.black
+                                              .withAlpha((0.1 * 255).toInt()),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child:
+                                              firstModel?.imageUrl != null
+                                                  ? Image.network(
+                                                    '${dotenv.env['API_BASE_URL']}${firstModel!.imageUrl}',
+                                                    width: 150,
+                                                    height: 150,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (
+                                                      context,
+                                                      error,
+                                                      stackTrace,
+                                                    ) {
+                                                      return Image.asset(
+                                                        'assets/images/legospike.png',
+                                                        width: 150,
+                                                        height: 150,
+                                                        fit: BoxFit.cover,
+                                                      );
+                                                    },
+                                                  )
+                                                  : Image.asset(
+                                                    'assets/images/legospike.png',
+                                                    width: 80,
+                                                    height: 80,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          course.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                            color: CupertinoColors.black,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                        Text(
+                                          categoryName,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: CupertinoColors.inactiveGray,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            CupertinoButton(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                  ),
+                                              minSize: 0,
+                                              child: const Icon(
+                                                CupertinoIcons.pencil,
+                                                size: 20,
+                                                color:
+                                                    CupertinoColors.activeBlue,
+                                              ),
+                                              onPressed: () async {
+                                                final result = await Get.to(
+                                                  () => AddCoursePage(
+                                                    existingCourse: course,
+                                                  ),
+                                                );
+                                                if (result == true)
+                                                  await loadData();
+                                              },
+                                            ),
+                                            CupertinoButton(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                  ),
+                                              minSize: 0,
+                                              child: const Icon(
+                                                CupertinoIcons.delete,
+                                                size: 20,
+                                                color:
+                                                    CupertinoColors
+                                                        .destructiveRed,
+                                              ),
+                                              onPressed:
+                                                  () => deleteCourse(course.id),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }, childCount: filteredCourses.length),
+                            ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

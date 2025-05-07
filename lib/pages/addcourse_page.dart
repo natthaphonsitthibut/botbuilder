@@ -133,118 +133,245 @@ class _AddCoursePageState extends State<AddCoursePage> {
         middle: Text(isEditing ? 'Edit Course' : 'Add Course'),
         trailing:
             _isLoading
-                ? const CupertinoActivityIndicator()
+                ? const CupertinoActivityIndicator(radius: 12)
                 : CupertinoButton(
                   padding: EdgeInsets.zero,
-                  child: Text(isEditing ? 'Update' : 'Save'),
+
                   onPressed: _submitCourse,
+                  child: Text(
+                    isEditing ? 'Update' : 'Save',
+                    style: const TextStyle(
+                      color: CupertinoColors.activeBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: ListView(
             children: [
+              // Course Name
               const Text(
                 'Course Name *',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
+                ),
               ),
-              const SizedBox(height: 8),
-              CupertinoTextField(
-                controller: _nameController,
-                placeholder: 'Enter course name',
-                padding: const EdgeInsets.all(12),
+              const SizedBox(height: 12),
+              Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: CupertinoColors.systemGrey3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              const Text(
-                'Course Category *',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              CupertinoButton(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                color: CupertinoColors.systemGrey5,
-                onPressed: () {
-                  showCupertinoModalPopup(
-                    context: context,
-                    builder:
-                        (_) => Container(
-                          height: 250,
-                          color: CupertinoColors.white,
-                          child: CupertinoPicker(
-                            itemExtent: 40,
-                            scrollController: FixedExtentScrollController(
-                              initialItem: categories.indexWhere(
-                                (c) => c.id == selectedCategory?.id,
-                              ),
-                            ),
-                            onSelectedItemChanged: (index) {
-                              setState(() {
-                                selectedCategory = categories[index];
-                              });
-                            },
-                            children:
-                                categories.map((c) => Text(c.name)).toList(),
-                          ),
-                        ),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(selectedCategory?.name ?? 'Select category'),
-                    const Icon(CupertinoIcons.chevron_down, size: 16),
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withAlpha(
+                        (0.1 * 255).toInt(),
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
                 ),
+                child: CupertinoTextField(
+                  controller: _nameController,
+                  placeholder: 'Enter course name',
+                  placeholderStyle: TextStyle(
+                    color: CupertinoColors.inactiveGray.withOpacity(0.6),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
+              // Course Category
+              const Text(
+                'Course Category *',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withAlpha(
+                        (0.1 * 255).toInt(),
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  color: CupertinoColors.white,
+                  onPressed: () {
+                    showCupertinoModalPopup(
+                      context: context,
+                      builder:
+                          (_) => Container(
+                            height: 250,
+                            color: CupertinoColors.white,
+                            child: CupertinoPicker(
+                              itemExtent: 40,
+                              scrollController: FixedExtentScrollController(
+                                initialItem: categories.indexWhere(
+                                  (c) => c.id == selectedCategory?.id,
+                                ),
+                              ),
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  selectedCategory = categories[index];
+                                });
+                              },
+                              children:
+                                  categories.map((c) => Text(c.name)).toList(),
+                            ),
+                          ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        selectedCategory?.name ?? 'Select category',
+                        style: TextStyle(
+                          color:
+                              selectedCategory != null
+                                  ? CupertinoColors.black
+                                  : CupertinoColors.inactiveGray,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const Icon(
+                        CupertinoIcons.chevron_down,
+                        size: 20,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Models
               const Text(
                 'Models (Optional)',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
+                ),
               ),
-              const SizedBox(height: 8),
-              Column(
-                children:
-                    allModels.map((model) {
-                      final isSelected = selectedModelIds.contains(model.id);
-                      return CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          setState(() {
-                            if (isSelected) {
-                              selectedModelIds.remove(model.id);
-                            } else {
-                              selectedModelIds.add(model.id!);
-                            }
-                          });
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              isSelected
-                                  ? CupertinoIcons.check_mark_circled_solid
-                                  : CupertinoIcons.circle,
-                              color:
-                                  isSelected
-                                      ? CupertinoColors.activeGreen
-                                      : CupertinoColors.inactiveGray,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(model.name),
-                          ],
+              const SizedBox(height: 12),
+              allModels.isEmpty
+                  ? Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CupertinoColors.black.withAlpha(
+                            (0.1 * 255).toInt(),
+                          ),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                      );
-                    }).toList(),
-              ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'No models available',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: CupertinoColors.inactiveGray,
+                        ),
+                      ),
+                    ),
+                  )
+                  : Column(
+                    children:
+                        allModels.map((model) {
+                          final isSelected = selectedModelIds.contains(
+                            model.id,
+                          );
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: CupertinoColors.black.withAlpha(
+                                      (0.1 * 255).toInt(),
+                                    ),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: CupertinoButton(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                color: CupertinoColors.white,
+                                onPressed: () {
+                                  setState(() {
+                                    if (isSelected) {
+                                      selectedModelIds.remove(model.id);
+                                    } else {
+                                      selectedModelIds.add(model.id!);
+                                    }
+                                  });
+                                },
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      isSelected
+                                          ? CupertinoIcons.checkmark_circle_fill
+                                          : CupertinoIcons.circle,
+                                      color:
+                                          isSelected
+                                              ? CupertinoColors.activeGreen
+                                              : CupertinoColors.inactiveGray,
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        model.name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: CupertinoColors.black,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                  ),
             ],
           ),
         ),

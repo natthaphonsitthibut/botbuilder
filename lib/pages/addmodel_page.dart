@@ -170,10 +170,16 @@ class _AddModelPageState extends State<AddModelPage> {
         middle: Text(isEditing ? 'Edit Model' : 'Add Model'),
         trailing:
             _isLoading
-                ? const CupertinoActivityIndicator()
+                ? const CupertinoActivityIndicator(radius: 12)
                 : CupertinoButton(
                   padding: EdgeInsets.zero,
-                  child: Text(isEditing ? 'Update' : 'Save'),
+                  child: Text(
+                    isEditing ? 'Update' : 'Save',
+                    style: const TextStyle(
+                      color: CupertinoColors.activeBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   onPressed: () {
                     if (isEditing) {
                       _updateModel(widget.existingModel!.id!);
@@ -185,17 +191,35 @@ class _AddModelPageState extends State<AddModelPage> {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: ListView(
             children: [
+              // Image Upload
+              const Text(
+                'Model Image',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
                   height: 200,
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey5,
+                    color: CupertinoColors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: CupertinoColors.systemGrey3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.black.withAlpha(
+                          (0.1 * 255).toInt(),
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child:
                       _imageFile != null
@@ -203,20 +227,21 @@ class _AddModelPageState extends State<AddModelPage> {
                             borderRadius: BorderRadius.circular(12),
                             child: Image.file(_imageFile!, fit: BoxFit.cover),
                           )
-                          : const Center(
+                          : Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   CupertinoIcons.photo,
                                   size: 48,
-                                  color: CupertinoColors.systemGrey,
+                                  color: CupertinoColors.inactiveGray,
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text(
                                   'Tap to upload image',
                                   style: TextStyle(
-                                    color: CupertinoColors.systemGrey,
+                                    fontSize: 16,
+                                    color: CupertinoColors.inactiveGray,
                                   ),
                                 ),
                               ],
@@ -225,143 +250,260 @@ class _AddModelPageState extends State<AddModelPage> {
                 ),
               ),
               const SizedBox(height: 24),
+
+              // Model Name
               const Text(
                 'Model Name *',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              CupertinoTextField(
-                controller: _nameController,
-                placeholder: 'Enter model name',
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: CupertinoColors.systemGrey3),
-                  borderRadius: BorderRadius.circular(8),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withAlpha(
+                        (0.1 * 255).toInt(),
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CupertinoTextField(
+                  controller: _nameController,
+                  placeholder: 'Enter model name',
+                  placeholderStyle: TextStyle(
+                    color: CupertinoColors.inactiveGray.withOpacity(0.6),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // PDF URL
               const Text(
-                'PDF URL',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              CupertinoTextField(
-                controller: _pdfUrlController,
-                placeholder: 'Optional PDF link',
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: CupertinoColors.systemGrey3),
-                  borderRadius: BorderRadius.circular(8),
+                'PDF URL (Optional)',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withAlpha(
+                        (0.1 * 255).toInt(),
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CupertinoTextField(
+                  controller: _pdfUrlController,
+                  placeholder: 'Enter PDF link',
+                  placeholderStyle: TextStyle(
+                    color: CupertinoColors.inactiveGray.withOpacity(0.6),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Course Category
               const Text(
                 'Course Category *',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              CupertinoButton(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
                 ),
-                color: CupertinoColors.systemGrey5,
-                onPressed: () {
-                  showCupertinoModalPopup(
-                    context: context,
-                    builder:
-                        (_) => Container(
-                          height: 250,
-                          color: CupertinoColors.white,
-                          child: CupertinoPicker(
-                            itemExtent: 40,
-                            scrollController: FixedExtentScrollController(
-                              initialItem: max(
-                                0,
-                                courseCategories.indexWhere(
-                                  (c) => c.id == selectedCategory?.id,
-                                ),
-                              ),
-                            ),
-                            onSelectedItemChanged: (index) {
-                              final category = courseCategories[index];
-                              setState(() {
-                                selectedCategory = category;
-                                final filtered =
-                                    courses
-                                        .where(
-                                          (c) =>
-                                              c.courseCategoryId == category.id,
-                                        )
-                                        .toList();
-                                selectedCourse =
-                                    filtered.isNotEmpty ? filtered.first : null;
-                              });
-                            },
-                            children:
-                                courseCategories
-                                    .map((c) => Text(c.name))
-                                    .toList(),
-                          ),
-                        ),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(selectedCategory?.name ?? 'Select category'),
-                    const Icon(CupertinoIcons.chevron_down, size: 16),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withAlpha(
+                        (0.1 * 255).toInt(),
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
                 ),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  color: CupertinoColors.white,
+                  onPressed: () {
+                    showCupertinoModalPopup(
+                      context: context,
+                      builder:
+                          (_) => Container(
+                            height: 250,
+                            color: CupertinoColors.white,
+                            child: CupertinoPicker(
+                              itemExtent: 40,
+                              scrollController: FixedExtentScrollController(
+                                initialItem: max(
+                                  0,
+                                  courseCategories.indexWhere(
+                                    (c) => c.id == selectedCategory?.id,
+                                  ),
+                                ),
+                              ),
+                              onSelectedItemChanged: (index) {
+                                final category = courseCategories[index];
+                                setState(() {
+                                  selectedCategory = category;
+                                  final filtered =
+                                      courses
+                                          .where(
+                                            (c) =>
+                                                c.courseCategoryId ==
+                                                category.id,
+                                          )
+                                          .toList();
+                                  selectedCourse =
+                                      filtered.isNotEmpty
+                                          ? filtered.first
+                                          : null;
+                                });
+                              },
+                              children:
+                                  courseCategories
+                                      .map((c) => Text(c.name))
+                                      .toList(),
+                            ),
+                          ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        selectedCategory?.name ?? 'Select category',
+                        style: TextStyle(
+                          color:
+                              selectedCategory != null
+                                  ? CupertinoColors.black
+                                  : CupertinoColors.inactiveGray,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const Icon(
+                        CupertinoIcons.chevron_down,
+                        size: 20,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+
+              // Course
               const Text(
                 'Course *',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              CupertinoButton(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: CupertinoColors.black,
                 ),
-                color: CupertinoColors.systemGrey5,
-                onPressed: () {
-                  showCupertinoModalPopup(
-                    context: context,
-                    builder:
-                        (_) => Container(
-                          height: 250,
-                          color: CupertinoColors.white,
-                          child: CupertinoPicker(
-                            itemExtent: 40,
-                            scrollController: FixedExtentScrollController(
-                              initialItem: max(
-                                0,
-                                filteredCourses.indexWhere(
-                                  (c) => c.id == selectedCourse?.id,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CupertinoColors.black.withAlpha(
+                        (0.1 * 255).toInt(),
+                      ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CupertinoButton(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  color: CupertinoColors.white,
+                  onPressed: () {
+                    showCupertinoModalPopup(
+                      context: context,
+                      builder:
+                          (_) => Container(
+                            height: 250,
+                            color: CupertinoColors.white,
+                            child: CupertinoPicker(
+                              itemExtent: 40,
+                              scrollController: FixedExtentScrollController(
+                                initialItem: max(
+                                  0,
+                                  filteredCourses.indexWhere(
+                                    (c) => c.id == selectedCourse?.id,
+                                  ),
                                 ),
                               ),
+                              onSelectedItemChanged: (index) {
+                                setState(() {
+                                  selectedCourse = filteredCourses[index];
+                                });
+                              },
+                              children:
+                                  filteredCourses
+                                      .map((c) => Text(c.name))
+                                      .toList(),
                             ),
-                            onSelectedItemChanged: (index) {
-                              setState(() {
-                                selectedCourse = filteredCourses[index];
-                              });
-                            },
-                            children:
-                                filteredCourses
-                                    .map((c) => Text(c.name))
-                                    .toList(),
                           ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        selectedCourse?.name ?? 'Select course',
+                        style: TextStyle(
+                          color:
+                              selectedCourse != null
+                                  ? CupertinoColors.black
+                                  : CupertinoColors.inactiveGray,
+                          fontSize: 16,
                         ),
-                  );
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(selectedCourse?.name ?? 'Select course'),
-                    const Icon(CupertinoIcons.chevron_down, size: 16),
-                  ],
+                      ),
+                      const Icon(
+                        CupertinoIcons.chevron_down,
+                        size: 20,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

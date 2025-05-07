@@ -21,23 +21,112 @@ class CheckInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Check In / Out'),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Check In / Out'),
+        backgroundColor: CupertinoColors.systemBackground,
       ),
       child: SafeArea(
-        child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CupertinoButton.filled(
-                child: const Text('Check In'),
-                onPressed: () => _launchUrl(checkInUrl),
+              const Text(
+                'Welcome!',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.black,
+                ),
               ),
-              const SizedBox(height: 20),
-              CupertinoButton(
-                color: CupertinoColors.systemGrey,
-                child: const Text('Check Out'),
-                onPressed: () => _launchUrl(checkOutUrl),
+              const SizedBox(height: 8),
+              const Text(
+                'Please check in or out below',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: CupertinoColors.inactiveGray,
+                ),
+              ),
+              const SizedBox(height: 32),
+              GestureDetector(
+                onTap: () => _launchUrl(checkInUrl),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.activeBlue,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.black.withAlpha(
+                          (0.1 * 255).toInt(),
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        CupertinoIcons.arrow_right_circle_fill,
+                        color: CupertinoColors.white,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Check In',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _launchUrl(checkOutUrl),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.systemGrey,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.black.withAlpha(
+                          (0.1 * 255).toInt(),
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        CupertinoIcons.arrow_left_circle_fill,
+                        color: CupertinoColors.white,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Check Out',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: CupertinoColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
